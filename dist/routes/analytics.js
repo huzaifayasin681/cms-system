@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const analyticsController_1 = require("../controllers/analyticsController");
+const auth_1 = require("../middleware/auth");
+const rateLimiter_1 = require("../middleware/rateLimiter");
+const router = (0, express_1.Router)();
+router.get('/overview', rateLimiter_1.generalLimiter, auth_1.authenticate, (0, auth_1.authorize)(['superadmin', 'admin', 'editor']), analyticsController_1.getDashboardOverview);
+router.get('/content', rateLimiter_1.generalLimiter, auth_1.authenticate, (0, auth_1.authorize)(['superadmin', 'admin', 'editor']), analyticsController_1.getContentPerformance);
+router.get('/traffic', rateLimiter_1.generalLimiter, auth_1.authenticate, (0, auth_1.authorize)(['superadmin', 'admin', 'editor']), analyticsController_1.getTrafficAnalytics);
+router.get('/users', rateLimiter_1.generalLimiter, auth_1.authenticate, (0, auth_1.authorize)(['superadmin', 'admin']), analyticsController_1.getUserAnalytics);
+router.get('/media', rateLimiter_1.generalLimiter, auth_1.authenticate, (0, auth_1.authorize)(['superadmin', 'admin', 'editor']), analyticsController_1.getMediaAnalytics);
+router.get('/search', rateLimiter_1.generalLimiter, auth_1.authenticate, (0, auth_1.authorize)(['superadmin', 'admin', 'editor']), analyticsController_1.getSearchAnalytics);
+router.get('/export', rateLimiter_1.generalLimiter, auth_1.authenticate, (0, auth_1.authorize)(['superadmin', 'admin']), analyticsController_1.exportAnalytics);
+exports.default = router;
+//# sourceMappingURL=analytics.js.map
