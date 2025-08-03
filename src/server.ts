@@ -45,6 +45,7 @@ const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:3000',
   'http://localhost:3000',
   'http://127.0.0.1:3000',
+  'https://cms-frontend-3vk4.vercel.app',
   'https://localhost:3000'
 ];
 
