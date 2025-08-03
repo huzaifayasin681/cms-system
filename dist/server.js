@@ -39,17 +39,29 @@ const allowedOrigins = [
     process.env.FRONTEND_URL || 'http://localhost:3000',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-    'https://localhost:3000'
+    'https://cms-frontend-3vk4.vercel.app',
+    'https://localhost:3000',
+    /^https:\/\/cms-frontend.*\.vercel\.app$/
 ];
 app.use((0, cors_1.default)({
     origin: function (origin, callback) {
         if (!origin)
             return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1) {
+        const isAllowed = allowedOrigins.some(allowedOrigin => {
+            if (typeof allowedOrigin === 'string') {
+                return allowedOrigin === origin;
+            }
+            else if (allowedOrigin instanceof RegExp) {
+                return allowedOrigin.test(origin);
+            }
+            return false;
+        });
+        if (isAllowed) {
+            console.log(`✅ CORS allowed origin: ${origin}`);
             callback(null, true);
         }
         else {
-            console.warn(`CORS blocked origin: ${origin}`);
+            console.warn(`❌ CORS blocked origin: ${origin}`);
             callback(new Error('Not allowed by CORS'));
         }
     },
@@ -71,17 +83,10 @@ app.use((0, cors_1.default)({
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
 app.use(rateLimiter_1.generalLimiter);
-app.options('*', (req, res) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID, X-API-Version, Accept, Origin, X-Requested-With');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Max-Age', '86400');
-    res.sendStatus(200);
-});
 app.use('/api', (req, res, next) => {
     res.setHeader('X-API-Version', '1.0.0');
     console.log(`${req.method} ${req.originalUrl} - ${req.headers['x-request-id'] || 'no-request-id'}`);
+    console.log('🔥 Origin:', req.headers.origin);
     next();
 });
 app.get('/health', (req, res) => {
