@@ -85,14 +85,14 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(generalLimiter);
 
 // Handle preflight requests explicitly
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID, X-API-Version, Accept, Origin, X-Requested-With');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Max-Age', '86400'); // 24 hours
-  res.sendStatus(200);
-});
+// app.options('*', (req, res) => {
+//   res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+//   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+//   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID, X-API-Version, Accept, Origin, X-Requested-With');
+//   res.header('Access-Control-Allow-Credentials', 'true');
+//   res.header('Access-Control-Max-Age', '86400'); // 24 hours
+//   res.sendStatus(200);
+// });
 
 // API versioning middleware
 app.use('/api', (req, res, next) => {
@@ -101,6 +101,7 @@ app.use('/api', (req, res, next) => {
   
   // Log request details for monitoring
   console.log(`${req.method} ${req.originalUrl} - ${req.headers['x-request-id'] || 'no-request-id'}`);
+   console.log('🔥 Origin:', req.headers.origin);
   
   next();
 });
