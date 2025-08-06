@@ -17,6 +17,8 @@ import analyticsRoutes from './routes/analytics';
 import activityRoutes from './routes/activity';
 import settingsRoutes from './routes/settings';
 import commentRoutes from './routes/comments';
+import notificationRoutes from './routes/notifications';
+import testNotificationRoutes from './routes/test-notifications';
 
 // Load environment variables
 dotenv.config();
@@ -44,11 +46,18 @@ app.use(helmet({
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:3000',
   'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
   'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+  'http://127.0.0.1:3002',
   'https://cms-frontend-3vk4.vercel.app',
   'https://localhost:3000',
   // Additional Vercel preview URLs pattern
-  /^https:\/\/cms-frontend.*\.vercel\.app$/
+  /^https:\/\/cms-frontend.*\.vercel\.app$/,
+  // Allow any localhost port for development
+  /^http:\/\/localhost:\d+$/,
+  /^http:\/\/127\.0\.0\.1:\d+$/
 ];
 
 app.use(cors({
@@ -139,6 +148,8 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/test', testNotificationRoutes);
 
 // Versioned API routes (v1)
 app.use('/api/v1/auth', authRoutes);
@@ -149,6 +160,8 @@ app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/activity', activityRoutes);
 app.use('/api/v1/settings', settingsRoutes);
 app.use('/api/v1/comments', commentRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/test', testNotificationRoutes);
 
 // API info route
 app.get('/api', (req, res) => {
@@ -165,7 +178,8 @@ app.get('/api', (req, res) => {
       analytics: '/api/v1/analytics',
       activity: '/api/v1/activity',
       settings: '/api/v1/settings',
-      comments: '/api/v1/comments'
+      comments: '/api/v1/comments',
+      notifications: '/api/v1/notifications'
     },
     deprecation: {
       notice: 'Legacy endpoints without version prefix are deprecated',
@@ -189,7 +203,8 @@ app.get('/api/v1', (req, res) => {
       analytics: '/api/v1/analytics',
       activity: '/api/v1/activity',
       settings: '/api/v1/settings',
-      comments: '/api/v1/comments'
+      comments: '/api/v1/comments',
+      notifications: '/api/v1/notifications'
     }
   });
 });
@@ -205,6 +220,9 @@ const server = createServer(app);
 
 // Initialize WebSocket server
 const wsServer = new WebSocketServer(server);
+
+// Make WebSocket server available to routes
+app.set('websocketServer', wsServer);
 
 // Export WebSocket server instance for use in other modules
 export { wsServer };

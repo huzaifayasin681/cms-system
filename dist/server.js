@@ -21,6 +21,8 @@ const analytics_1 = __importDefault(require("./routes/analytics"));
 const activity_1 = __importDefault(require("./routes/activity"));
 const settings_1 = __importDefault(require("./routes/settings"));
 const comments_1 = __importDefault(require("./routes/comments"));
+const notifications_1 = __importDefault(require("./routes/notifications"));
+const test_notifications_1 = __importDefault(require("./routes/test-notifications"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 (0, database_1.default)();
@@ -38,10 +40,16 @@ app.use((0, helmet_1.default)({
 const allowedOrigins = [
     process.env.FRONTEND_URL || 'http://localhost:3000',
     'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
     'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
+    'http://127.0.0.1:3002',
     'https://cms-frontend-3vk4.vercel.app',
     'https://localhost:3000',
-    /^https:\/\/cms-frontend.*\.vercel\.app$/
+    /^https:\/\/cms-frontend.*\.vercel\.app$/,
+    /^http:\/\/localhost:\d+$/,
+    /^http:\/\/127\.0\.0\.1:\d+$/
 ];
 app.use((0, cors_1.default)({
     origin: function (origin, callback) {
@@ -106,6 +114,8 @@ app.use('/api/analytics', analytics_1.default);
 app.use('/api/activity', activity_1.default);
 app.use('/api/settings', settings_1.default);
 app.use('/api/comments', comments_1.default);
+app.use('/api/notifications', notifications_1.default);
+app.use('/api/test', test_notifications_1.default);
 app.use('/api/v1/auth', auth_1.default);
 app.use('/api/v1/posts', posts_1.default);
 app.use('/api/v1/pages', pages_1.default);
@@ -114,6 +124,8 @@ app.use('/api/v1/analytics', analytics_1.default);
 app.use('/api/v1/activity', activity_1.default);
 app.use('/api/v1/settings', settings_1.default);
 app.use('/api/v1/comments', comments_1.default);
+app.use('/api/v1/notifications', notifications_1.default);
+app.use('/api/v1/test', test_notifications_1.default);
 app.get('/api', (req, res) => {
     res.json({
         message: 'CMS API Server',
@@ -128,7 +140,8 @@ app.get('/api', (req, res) => {
             analytics: '/api/v1/analytics',
             activity: '/api/v1/activity',
             settings: '/api/v1/settings',
-            comments: '/api/v1/comments'
+            comments: '/api/v1/comments',
+            notifications: '/api/v1/notifications'
         },
         deprecation: {
             notice: 'Legacy endpoints without version prefix are deprecated',
@@ -150,7 +163,8 @@ app.get('/api/v1', (req, res) => {
             analytics: '/api/v1/analytics',
             activity: '/api/v1/activity',
             settings: '/api/v1/settings',
-            comments: '/api/v1/comments'
+            comments: '/api/v1/comments',
+            notifications: '/api/v1/notifications'
         }
     });
 });
@@ -159,6 +173,7 @@ app.use(errorHandler_1.errorHandler);
 const server = (0, http_1.createServer)(app);
 const wsServer = new websocketServer_1.default(server);
 exports.wsServer = wsServer;
+app.set('websocketServer', wsServer);
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
     console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);

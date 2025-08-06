@@ -45,11 +45,17 @@ export class WebSocketServer {
   constructor(server: HTTPServer) {
     this.io = new SocketIOServer(server, {
       cors: {
-        origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+        origin: [
+          process.env.FRONTEND_URL || 'http://localhost:3000',
+          'http://localhost:3000',
+          'http://localhost:3001',
+          'http://127.0.0.1:3000'
+        ],
         credentials: true,
         methods: ['GET', 'POST'],
       },
       transports: ['websocket', 'polling'],
+      allowEIO3: true,
     });
 
     this.setupMiddleware();
@@ -107,6 +113,7 @@ export class WebSocketServer {
       this.setupMediaEvents(socket);
       this.setupUserEvents(socket);
       this.setupSystemEvents(socket);
+      this.setupNotificationEvents(socket);
 
       socket.on('disconnect', () => {
         console.log(`User ${socket.userId} disconnected`);
@@ -273,6 +280,31 @@ export class WebSocketServer {
     });
   }
 
+  private setupNotificationEvents(socket: AuthenticatedSocket) {
+    // Join user to their notification room
+    socket.join(`notifications:${socket.userId}`);
+
+    // Handle notification acknowledgment
+    socket.on('notification:acknowledge', (data: { notificationId: string }) => {
+      if (!data.notificationId) {
+        console.error('Invalid notification acknowledgment data received');
+        return;
+      }
+      
+      console.log(`User ${socket.userId} acknowledged notification ${data.notificationId}`);
+    });
+
+    // Handle notification read status update
+    socket.on('notification:read', (data: { notificationId: string }) => {
+      if (!data.notificationId) {
+        console.error('Invalid notification read data received');
+        return;
+      }
+      
+      console.log(`User ${socket.userId} marked notification ${data.notificationId} as read`);
+    });
+  }
+
   // Broadcast Methods
   public broadcastToAll(event: string, data: any): void {
     if (!event || typeof event !== 'string') {
@@ -310,6 +342,34 @@ export class WebSocketServer {
       return true;
     }
     return false;
+  }
+
+  public broadcastNotificationToUser(userId: string, notification: any): boolean {
+    if (!userId || !notification) {
+      console.error('Invalid parameters for notification broadcast');
+      return false;
+    }
+    
+    // Try direct socket connection first
+    const socket = this.connectedUsers.get(userId);
+    if (socket) {
+      socket.emit('notification:new', notification);
+      return true;
+    }
+    
+    // Fallback to room-based broadcast (user might have multiple connections)
+    this.io.to(`notifications:${userId}`).emit('notification:new', notification);
+    return false; // Return false since we can't confirm delivery
+  }
+
+  public broadcastNotificationUpdate(userId: string, update: any): boolean {
+    if (!userId || !update) {
+      console.error('Invalid parameters for notification update broadcast');
+      return false;
+    }
+
+    this.io.to(`notifications:${userId}`).emit('notification:update', update);
+    return true;
   }
 
   public getConnectedUsers(): string[] {

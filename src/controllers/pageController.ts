@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import Page from '../models/Page';
 import { AuthRequest } from '../middleware/auth';
+import notificationService from '../services/notificationService';
 
 export const createPage = async (req: AuthRequest, res: Response) => {
   try {
@@ -36,6 +37,26 @@ export const createPage = async (req: AuthRequest, res: Response) => {
     const page = new Page(pageData);
     await page.save();
     await page.populate('author', 'username email firstName lastName avatar');
+
+    // Send notifications for new page
+    try {
+      if (pageData.status === 'published') {
+        await notificationService.notifyPagePublished(
+          page,
+          req.user,
+          req.app.get('websocketServer')
+        );
+      } else {
+        await notificationService.notifyNewPage(
+          page,
+          req.user,
+          req.app.get('websocketServer')
+        );
+      }
+    } catch (notificationError) {
+      console.error('Failed to send page notifications:', notificationError);
+      // Don't fail the entire request if notifications fail
+    }
 
     res.status(201).json({
       success: true,
@@ -220,6 +241,10 @@ export const updatePage = async (req: AuthRequest, res: Response) => {
     if (cleanedBody.seoTitle === '') cleanedBody.seoTitle = null;
     if (cleanedBody.seoDescription === '') cleanedBody.seoDescription = null;
     
+    // Check if page is being published (status changed from draft to published)
+    const wasUnpublished = page.status !== 'published';
+    const willBePublished = cleanedBody.status === 'published';
+    
     // Save content history if content changed
     if (cleanedBody.content && cleanedBody.content !== page.content) {
       page.contentHistory.push({
@@ -235,6 +260,20 @@ export const updatePage = async (req: AuthRequest, res: Response) => {
       { path: 'author', select: 'username email firstName lastName avatar' },
       { path: 'parentPage', select: 'title slug' }
     ]);
+    
+    // Send notifications if page was just published
+    if (wasUnpublished && willBePublished) {
+      try {
+        await notificationService.notifyPagePublished(
+          page,
+          req.user,
+          req.app.get('websocketServer')
+        );
+      } catch (notificationError) {
+        console.error('Failed to send page publication notifications:', notificationError);
+        // Don't fail the entire request if notifications fail
+      }
+    }
     
     res.json({
       success: true,

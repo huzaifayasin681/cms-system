@@ -7,11 +7,14 @@ export interface IPage extends Document {
   excerpt?: string;
   featuredImage?: string;
   author: Types.ObjectId;
-  status: 'draft' | 'published' | 'archived';
+  status: 'draft' | 'published' | 'archived' | 'scheduled' | 'pending_review';
   template: 'default' | 'full-width' | 'minimal' | 'landing' | 'contact' | 'about' | 'visual-builder';
   icon?: string;
   seoTitle?: string;
   seoDescription?: string;
+  seoKeywords?: string[];
+  categories?: Types.ObjectId[];
+  tags?: Types.ObjectId[];
   isHomePage: boolean;
   parentPage?: Types.ObjectId;
   menuOrder: number;
@@ -20,6 +23,23 @@ export interface IPage extends Document {
   customJs?: string;
   views: number;
   publishedAt?: Date;
+  scheduledAt?: Date;
+  // New enhanced fields
+  version: number;
+  customFields?: Record<string, any>;
+  workflowStatus?: {
+    currentWorkflow?: Types.ObjectId;
+    currentStep?: string;
+    submittedAt?: Date;
+    submittedBy?: Types.ObjectId;
+  };
+  collaborators: {
+    userId: Types.ObjectId;
+    permission: 'read' | 'edit' | 'admin';
+    addedAt: Date;
+    addedBy: Types.ObjectId;
+  }[];
+  searchableContent: string;
   // Template-specific fields
   ctaText?: string;
   phone?: string;
@@ -99,7 +119,7 @@ const pageSchema = new Schema<IPage>({
   },
   status: {
     type: String,
-    enum: ['draft', 'published', 'archived'],
+    enum: ['draft', 'published', 'archived', 'scheduled', 'pending_review'],
     default: 'draft'
   },
   template: {
@@ -119,6 +139,19 @@ const pageSchema = new Schema<IPage>({
     type: String,
     maxlength: 160
   },
+  seoKeywords: [{
+    type: String,
+    trim: true,
+    maxlength: 50
+  }],
+  categories: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Category'
+  }],
+  tags: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Tag'
+  }],
   isHomePage: {
     type: Boolean,
     default: false
@@ -147,6 +180,60 @@ const pageSchema = new Schema<IPage>({
   },
   publishedAt: {
     type: Date
+  },
+  scheduledAt: {
+    type: Date
+  },
+  // New enhanced fields
+  version: {
+    type: Number,
+    default: 1,
+    min: 1
+  },
+  customFields: {
+    type: Schema.Types.Mixed,
+    default: {}
+  },
+  workflowStatus: {
+    currentWorkflow: {
+      type: Schema.Types.ObjectId,
+      ref: 'Workflow'
+    },
+    currentStep: {
+      type: String
+    },
+    submittedAt: {
+      type: Date
+    },
+    submittedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  },
+  collaborators: [{
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    permission: {
+      type: String,
+      enum: ['read', 'edit', 'admin'],
+      default: 'edit'
+    },
+    addedAt: {
+      type: Date,
+      default: Date.now
+    },
+    addedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    }
+  }],
+  searchableContent: {
+    type: String,
+    index: 'text'
   },
   // Template-specific fields
   ctaText: {
@@ -216,8 +303,19 @@ const pageSchema = new Schema<IPage>({
 });
 
 pageSchema.pre('save', function(next) {
+  if (this.isModified('content') || this.isModified('title')) {
+    // Update searchable content for full-text search
+    const cleanContent = this.content.replace(/<[^>]*>/g, ' ');
+    this.searchableContent = `${this.title} ${cleanContent} ${this.excerpt || ''}`.toLowerCase();
+  }
+  
   if (this.isModified('status') && this.status === 'published' && !this.publishedAt) {
     this.publishedAt = new Date();
+  }
+  
+  // Increment version on content changes
+  if (this.isModified('content') && !this.isNew) {
+    this.version += 1;
   }
   
   // Set default icons based on template if no icon is provided
@@ -237,11 +335,32 @@ pageSchema.pre('save', function(next) {
   next();
 });
 
+// Indexes
 pageSchema.index({ slug: 1 });
 pageSchema.index({ author: 1 });
 pageSchema.index({ status: 1 });
 pageSchema.index({ isHomePage: 1 });
 pageSchema.index({ showInMenu: 1 });
 pageSchema.index({ menuOrder: 1 });
+pageSchema.index({ version: -1 });
+pageSchema.index({ 'workflowStatus.currentWorkflow': 1 });
+pageSchema.index({ 'collaborators.userId': 1 });
+pageSchema.index({ searchableContent: 'text' });
+pageSchema.index({ seoKeywords: 1 });
+pageSchema.index({ categories: 1 });
+pageSchema.index({ tags: 1 });
+
+// Text index for search
+pageSchema.index({
+  title: 'text',
+  searchableContent: 'text',
+  'seoKeywords': 'text'
+}, {
+  weights: {
+    title: 10,
+    searchableContent: 5,
+    seoKeywords: 3
+  }
+});
 
 export default mongoose.model<IPage>('Page', pageSchema);

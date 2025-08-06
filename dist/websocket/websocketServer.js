@@ -12,11 +12,17 @@ class WebSocketServer {
         this.connectedUsers = new Map();
         this.io = new socket_io_1.Server(server, {
             cors: {
-                origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+                origin: [
+                    process.env.FRONTEND_URL || 'http://localhost:3000',
+                    'http://localhost:3000',
+                    'http://localhost:3001',
+                    'http://127.0.0.1:3000'
+                ],
                 credentials: true,
                 methods: ['GET', 'POST'],
             },
             transports: ['websocket', 'polling'],
+            allowEIO3: true,
         });
         this.setupMiddleware();
         this.setupEventHandlers();
@@ -64,6 +70,7 @@ class WebSocketServer {
             this.setupMediaEvents(socket);
             this.setupUserEvents(socket);
             this.setupSystemEvents(socket);
+            this.setupNotificationEvents(socket);
             socket.on('disconnect', () => {
                 console.log(`User ${socket.userId} disconnected`);
                 if (socket.userId) {
@@ -205,6 +212,23 @@ class WebSocketServer {
             });
         });
     }
+    setupNotificationEvents(socket) {
+        socket.join(`notifications:${socket.userId}`);
+        socket.on('notification:acknowledge', (data) => {
+            if (!data.notificationId) {
+                console.error('Invalid notification acknowledgment data received');
+                return;
+            }
+            console.log(`User ${socket.userId} acknowledged notification ${data.notificationId}`);
+        });
+        socket.on('notification:read', (data) => {
+            if (!data.notificationId) {
+                console.error('Invalid notification read data received');
+                return;
+            }
+            console.log(`User ${socket.userId} marked notification ${data.notificationId} as read`);
+        });
+    }
     broadcastToAll(event, data) {
         if (!event || typeof event !== 'string') {
             console.error('Invalid event name for broadcast');
@@ -237,6 +261,27 @@ class WebSocketServer {
             return true;
         }
         return false;
+    }
+    broadcastNotificationToUser(userId, notification) {
+        if (!userId || !notification) {
+            console.error('Invalid parameters for notification broadcast');
+            return false;
+        }
+        const socket = this.connectedUsers.get(userId);
+        if (socket) {
+            socket.emit('notification:new', notification);
+            return true;
+        }
+        this.io.to(`notifications:${userId}`).emit('notification:new', notification);
+        return false;
+    }
+    broadcastNotificationUpdate(userId, update) {
+        if (!userId || !update) {
+            console.error('Invalid parameters for notification update broadcast');
+            return false;
+        }
+        this.io.to(`notifications:${userId}`).emit('notification:update', update);
+        return true;
     }
     getConnectedUsers() {
         return [...this.connectedUsers.keys()];

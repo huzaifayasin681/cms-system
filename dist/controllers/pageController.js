@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getHomePage = exports.getMenuPages = exports.deletePage = exports.updatePage = exports.getPage = exports.getPages = exports.createPage = void 0;
 const express_validator_1 = require("express-validator");
 const Page_1 = __importDefault(require("../models/Page"));
+const notificationService_1 = __importDefault(require("../services/notificationService"));
 const createPage = async (req, res) => {
     try {
         const errors = (0, express_validator_1.validationResult)(req);
@@ -37,6 +38,17 @@ const createPage = async (req, res) => {
         const page = new Page_1.default(pageData);
         await page.save();
         await page.populate('author', 'username email firstName lastName avatar');
+        try {
+            if (pageData.status === 'published') {
+                await notificationService_1.default.notifyPagePublished(page, req.user, req.app.get('websocketServer'));
+            }
+            else {
+                await notificationService_1.default.notifyNewPage(page, req.user, req.app.get('websocketServer'));
+            }
+        }
+        catch (notificationError) {
+            console.error('Failed to send page notifications:', notificationError);
+        }
         res.status(201).json({
             success: true,
             message: 'Page created successfully',
@@ -193,6 +205,8 @@ const updatePage = async (req, res) => {
             cleanedBody.seoTitle = null;
         if (cleanedBody.seoDescription === '')
             cleanedBody.seoDescription = null;
+        const wasUnpublished = page.status !== 'published';
+        const willBePublished = cleanedBody.status === 'published';
         if (cleanedBody.content && cleanedBody.content !== page.content) {
             page.contentHistory.push({
                 content: page.content,
@@ -206,6 +220,14 @@ const updatePage = async (req, res) => {
             { path: 'author', select: 'username email firstName lastName avatar' },
             { path: 'parentPage', select: 'title slug' }
         ]);
+        if (wasUnpublished && willBePublished) {
+            try {
+                await notificationService_1.default.notifyPagePublished(page, req.user, req.app.get('websocketServer'));
+            }
+            catch (notificationError) {
+                console.error('Failed to send page publication notifications:', notificationError);
+            }
+        }
         res.json({
             success: true,
             message: 'Page updated successfully',

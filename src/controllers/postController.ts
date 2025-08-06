@@ -4,6 +4,7 @@ import { Types } from 'mongoose';
 import Post from '../models/Post';
 import { AuthRequest } from '../middleware/auth';
 import { logActivity } from './activityController';
+import notificationService from '../services/notificationService';
 
 // Helper function to validate MongoDB ObjectId
 const isValidObjectId = (id: string): boolean => {
@@ -29,6 +30,20 @@ export const createPost = async (req: AuthRequest, res: Response) => {
     const post = new Post(postData);
     await post.save();
     await post.populate('author', 'username email firstName lastName avatar');
+
+    // Send notifications if post is published
+    if (postData.status === 'published') {
+      try {
+        await notificationService.notifyNewBlogPost(
+          post,
+          req.user,
+          req.app.get('websocketServer')
+        );
+      } catch (notificationError) {
+        console.error('Failed to send blog post notifications:', notificationError);
+        // Don't fail the entire request if notifications fail
+      }
+    }
 
     res.status(201).json({
       success: true,
@@ -207,6 +222,10 @@ export const updatePost = async (req: AuthRequest, res: Response) => {
       });
     }
     
+    // Check if post is being published (status changed from draft to published)
+    const wasUnpublished = post.status !== 'published';
+    const willBePublished = req.body.status === 'published';
+    
     // Save content history if content changed
     if (req.body.content && req.body.content !== post.content) {
       post.contentHistory.push({
@@ -219,6 +238,20 @@ export const updatePost = async (req: AuthRequest, res: Response) => {
     Object.assign(post, req.body);
     await post.save();
     await post.populate('author', 'username email firstName lastName avatar');
+    
+    // Send notifications if post was just published
+    if (wasUnpublished && willBePublished) {
+      try {
+        await notificationService.notifyNewBlogPost(
+          post,
+          req.user,
+          req.app.get('websocketServer')
+        );
+      } catch (notificationError) {
+        console.error('Failed to send blog post notifications:', notificationError);
+        // Don't fail the entire request if notifications fail
+      }
+    }
     
     res.json({
       success: true,

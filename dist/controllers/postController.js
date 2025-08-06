@@ -7,6 +7,7 @@ exports.savePostDraft = exports.toggleLike = exports.deletePost = exports.update
 const express_validator_1 = require("express-validator");
 const mongoose_1 = require("mongoose");
 const Post_1 = __importDefault(require("../models/Post"));
+const notificationService_1 = __importDefault(require("../services/notificationService"));
 const isValidObjectId = (id) => {
     return Boolean(id && id !== 'undefined' && id !== 'null' && mongoose_1.Types.ObjectId.isValid(id));
 };
@@ -27,6 +28,14 @@ const createPost = async (req, res) => {
         const post = new Post_1.default(postData);
         await post.save();
         await post.populate('author', 'username email firstName lastName avatar');
+        if (postData.status === 'published') {
+            try {
+                await notificationService_1.default.notifyNewBlogPost(post, req.user, req.app.get('websocketServer'));
+            }
+            catch (notificationError) {
+                console.error('Failed to send blog post notifications:', notificationError);
+            }
+        }
         res.status(201).json({
             success: true,
             message: 'Post created successfully',
@@ -175,6 +184,8 @@ const updatePost = async (req, res) => {
                 message: 'Not authorized to update this post'
             });
         }
+        const wasUnpublished = post.status !== 'published';
+        const willBePublished = req.body.status === 'published';
         if (req.body.content && req.body.content !== post.content) {
             post.contentHistory.push({
                 content: post.content,
@@ -185,6 +196,14 @@ const updatePost = async (req, res) => {
         Object.assign(post, req.body);
         await post.save();
         await post.populate('author', 'username email firstName lastName avatar');
+        if (wasUnpublished && willBePublished) {
+            try {
+                await notificationService_1.default.notifyNewBlogPost(post, req.user, req.app.get('websocketServer'));
+            }
+            catch (notificationError) {
+                console.error('Failed to send blog post notifications:', notificationError);
+            }
+        }
         res.json({
             success: true,
             message: 'Post updated successfully',

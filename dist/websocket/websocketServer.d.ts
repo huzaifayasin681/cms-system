@@ -10,10 +10,13 @@ export declare class WebSocketServer {
     private setupMediaEvents;
     private setupUserEvents;
     private setupSystemEvents;
+    private setupNotificationEvents;
     broadcastToAll(event: string, data: any): void;
     broadcastToAdmins(event: string, data: any): void;
     broadcastToEditors(event: string, data: any): void;
     broadcastToUser(userId: string, event: string, data: any): boolean;
+    broadcastNotificationToUser(userId: string, notification: any): boolean;
+    broadcastNotificationUpdate(userId: string, update: any): boolean;
     getConnectedUsers(): string[];
     getConnectedUsersCount(): number;
     isUserConnected(userId: string): boolean;
