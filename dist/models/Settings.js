@@ -195,4 +195,3 @@ const SettingsSchema = new mongoose_1.Schema({
 });
 SettingsSchema.index({}, { unique: true });
 exports.default = mongoose_1.default.model('Settings', SettingsSchema);
-//# sourceMappingURL=Settings.js.map

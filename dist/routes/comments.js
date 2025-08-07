@@ -21,4 +21,3 @@ router.post('/:postId', auth_1.authenticate, rateLimiter_1.generalLimiter, valid
 router.post('/:commentId/like', auth_1.authenticate, rateLimiter_1.generalLimiter, commentController_1.toggleCommentLike);
 router.delete('/:commentId', auth_1.authenticate, rateLimiter_1.generalLimiter, commentController_1.deleteComment);
 exports.default = router;
-//# sourceMappingURL=comments.js.map

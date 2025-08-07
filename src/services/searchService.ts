@@ -4,6 +4,7 @@ import Page from '../models/Page';
 import Category from '../models/Category';
 import Tag from '../models/Tag';
 import User from '../models/User';
+import { safeFindById, safeFind } from '../utils/mongooseHelper';
 
 export interface ISearchFilters {
   query?: string;
@@ -567,7 +568,7 @@ export class SearchService {
   ) {
     try {
       const Model = contentType === 'post' ? Post : Page;
-      const content = await Model.findById(contentId).populate('categories tags');
+      const content = await safeFindById(Model, contentId).populate('categories tags');
 
       if (!content) {
         return [];
@@ -576,7 +577,7 @@ export class SearchService {
       const categoryIds = content.categories.map((c: any) => c._id);
       const tagIds = content.tags.map((t: any) => t._id);
 
-      const related = await Model.find({
+      const related = await safeFind(Model, {
         _id: { $ne: contentId },
         status: 'published',
         $or: [

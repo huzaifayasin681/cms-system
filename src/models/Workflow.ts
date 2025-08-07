@@ -252,7 +252,7 @@ workflowSchema.statics.getDefaultWorkflow = function(contentType: string) {
 
 // Instance methods for WorkflowInstance
 workflowInstanceSchema.methods.approveStep = function(stepId: string, userId: mongoose.Types.ObjectId, comments?: string) {
-  const step = this.steps.find(s => s.stepId === stepId);
+  const step = this.steps.find((s: any) => s.stepId === stepId);
   if (step) {
     step.status = 'approved';
     step.approvedBy = userId;
@@ -260,7 +260,7 @@ workflowInstanceSchema.methods.approveStep = function(stepId: string, userId: mo
     if (comments) step.comments = comments;
     
     // Move to next step or complete
-    const currentStepIndex = this.steps.findIndex(s => s.stepId === stepId);
+    const currentStepIndex = this.steps.findIndex((s: any) => s.stepId === stepId);
     if (currentStepIndex < this.steps.length - 1) {
       this.currentStepId = this.steps[currentStepIndex + 1].stepId;
       this.status = 'in_progress';
@@ -273,7 +273,7 @@ workflowInstanceSchema.methods.approveStep = function(stepId: string, userId: mo
 };
 
 workflowInstanceSchema.methods.rejectStep = function(stepId: string, userId: mongoose.Types.ObjectId, comments: string) {
-  const step = this.steps.find(s => s.stepId === stepId);
+  const step = this.steps.find((s: any) => s.stepId === stepId);
   if (step) {
     step.status = 'rejected';
     step.rejectedBy = userId;

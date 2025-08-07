@@ -15,10 +15,10 @@ export declare const logActivity: (data: {
     metadata?: any;
     ipAddress?: string;
     userAgent?: string;
-}) => Promise<(import("mongoose").Document<unknown, {}, import("../models/Activity").IActivity, {}> & import("../models/Activity").IActivity & Required<{
+}) => Promise<import("mongoose").Document<unknown, {}, import("../models/Activity").IActivity, {}> & import("../models/Activity").IActivity & Required<{
     _id: unknown;
 }> & {
     __v: number;
-}) | undefined>;
+}>;
 export declare const getActivityStats: (req: AuthRequest, res: Response) => Promise<void>;
 //# sourceMappingURL=activityController.d.ts.map

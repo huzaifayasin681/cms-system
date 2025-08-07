@@ -86,4 +86,3 @@ ActivitySchema.index({ createdAt: -1 });
 ActivitySchema.index({ userId: 1, createdAt: -1 });
 ActivitySchema.index({ type: 1, createdAt: -1 });
 exports.default = mongoose_1.default.model('Activity', ActivitySchema);
-//# sourceMappingURL=Activity.js.map

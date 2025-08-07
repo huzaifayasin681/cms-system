@@ -6,11 +6,12 @@ export interface IPost extends Document {
     excerpt?: string;
     featuredImage?: string;
     author: Types.ObjectId;
-    status: 'draft' | 'published' | 'archived';
-    tags: string[];
-    categories: string[];
+    status: 'draft' | 'published' | 'archived' | 'scheduled' | 'pending_review';
+    tags: Types.ObjectId[];
+    categories: Types.ObjectId[];
     seoTitle?: string;
     seoDescription?: string;
+    seoKeywords?: string[];
     views: number;
     likes: Types.ObjectId[];
     publishedAt?: Date;
@@ -20,6 +21,21 @@ export interface IPost extends Document {
         savedAt: Date;
         savedBy: Types.ObjectId;
     }[];
+    version: number;
+    customFields?: Record<string, any>;
+    workflowStatus?: {
+        currentWorkflow?: Types.ObjectId;
+        currentStep?: string;
+        submittedAt?: Date;
+        submittedBy?: Types.ObjectId;
+    };
+    collaborators: {
+        userId: Types.ObjectId;
+        permission: 'read' | 'edit' | 'admin';
+        addedAt: Date;
+        addedBy: Types.ObjectId;
+    }[];
+    searchableContent: string;
     readingTime: number;
     wordCount: number;
     createdAt: Date;

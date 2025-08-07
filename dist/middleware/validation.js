@@ -310,4 +310,3 @@ exports.validateSettings = [
         .isLength({ max: 500 })
         .withMessage('Tracking code cannot exceed 500 characters')
 ];
-//# sourceMappingURL=validation.js.map

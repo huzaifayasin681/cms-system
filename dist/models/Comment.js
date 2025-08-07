@@ -99,4 +99,3 @@ commentSchema.index({ author: 1 });
 commentSchema.index({ parentComment: 1 });
 commentSchema.index({ createdAt: -1 });
 exports.default = mongoose_1.default.model('Comment', commentSchema);
-//# sourceMappingURL=Comment.js.map

@@ -150,4 +150,3 @@ const formatTimestamp = (date) => {
         return date.toLocaleDateString();
     }
 };
-//# sourceMappingURL=activityController.js.map

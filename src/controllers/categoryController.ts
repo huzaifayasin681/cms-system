@@ -55,7 +55,7 @@ export const getCategories = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching categories', error: error.message });
+    res.status(500).json({ message: 'Error fetching categories', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -70,18 +70,18 @@ export const getCategoryHierarchy = async (req: Request, res: Response) => {
     const hierarchy = categories.filter(cat => !cat.parentId).map(parent => ({
       ...parent.toObject(),
       children: categories.filter(cat => 
-        cat.parentId && cat.parentId.toString() === parent._id.toString()
+        cat.parentId && cat.parentId.toString() === (parent._id as any).toString()
       ).map(child => ({
         ...child.toObject(),
         children: categories.filter(subcat => 
-          subcat.parentId && subcat.parentId.toString() === child._id.toString()
+          subcat.parentId && subcat.parentId.toString() === (child._id as any).toString()
         )
       }))
     }));
 
     res.json(hierarchy);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching category hierarchy', error: error.message });
+    res.status(500).json({ message: 'Error fetching category hierarchy', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -99,7 +99,7 @@ export const getCategory = async (req: Request, res: Response) => {
 
     res.json(category);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching category', error: error.message });
+    res.status(500).json({ message: 'Error fetching category', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -132,7 +132,7 @@ export const createCategory = async (req: Request, res: Response) => {
 
     res.status(201).json(category);
   } catch (error) {
-    res.status(500).json({ message: 'Error creating category', error: error.message });
+    res.status(500).json({ message: 'Error creating category', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -178,7 +178,7 @@ export const updateCategory = async (req: Request, res: Response) => {
 
     res.json(category);
   } catch (error) {
-    res.status(500).json({ message: 'Error updating category', error: error.message });
+    res.status(500).json({ message: 'Error updating category', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -214,7 +214,7 @@ export const deleteCategory = async (req: Request, res: Response) => {
     await Category.findByIdAndDelete(req.params.id);
     res.json({ message: 'Category deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting category', error: error.message });
+    res.status(500).json({ message: 'Error deleting category', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -256,7 +256,7 @@ export const bulkDeleteCategories = async (req: Request, res: Response) => {
       deletedCount: result.deletedCount
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting categories', error: error.message });
+    res.status(500).json({ message: 'Error deleting categories', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -284,7 +284,7 @@ export const getCategoryStats = async (req: Request, res: Response) => {
       totalContent: postsCount + pagesCount
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching category stats', error: error.message });
+    res.status(500).json({ message: 'Error fetching category stats', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -319,7 +319,7 @@ export const moveCategory = async (req: Request, res: Response) => {
 
     res.json(category);
   } catch (error) {
-    res.status(500).json({ message: 'Error moving category', error: error.message });
+    res.status(500).json({ message: 'Error moving category', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 

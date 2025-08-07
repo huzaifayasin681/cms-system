@@ -15,4 +15,3 @@ router.delete('/:id', auth_1.authenticate, (0, auth_1.authorize)(['superadmin', 
 router.post('/:id/like', auth_1.authenticate, analytics_1.trackLike, postController_1.toggleLike, analytics_1.saveAnalyticsEvent);
 router.post('/:id/save-draft', auth_1.authenticate, (0, auth_1.authorize)(['superadmin', 'admin', 'editor']), postController_1.savePostDraft);
 exports.default = router;
-//# sourceMappingURL=posts.js.map

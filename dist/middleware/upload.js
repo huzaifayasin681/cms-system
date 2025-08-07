@@ -79,4 +79,3 @@ const handleMulterError = (error, req, res, next) => {
     next(error);
 };
 exports.handleMulterError = handleMulterError;
-//# sourceMappingURL=upload.js.map

@@ -15,4 +15,3 @@ router.post('/', auth_1.authenticate, (0, auth_1.authorize)(['superadmin', 'admi
 router.put('/:id', auth_1.authenticate, (0, auth_1.authorize)(['superadmin', 'admin', 'editor']), validation_1.validatePage, pageController_1.updatePage);
 router.delete('/:id', auth_1.authenticate, (0, auth_1.authorize)(['superadmin', 'admin', 'editor']), pageController_1.deletePage);
 exports.default = router;
-//# sourceMappingURL=pages.js.map

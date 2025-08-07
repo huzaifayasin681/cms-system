@@ -1375,4 +1375,3 @@ const uploadAvatar = async (req, res) => {
     }
 };
 exports.uploadAvatar = uploadAvatar;
-//# sourceMappingURL=authController.js.map

@@ -2,7 +2,8 @@ import mongoose from 'mongoose';
 import ContentSchedule from '../models/ContentSchedule';
 import Post from '../models/Post';
 import Page from '../models/Page';
-import { NotificationService } from './notificationService';
+import NotificationService from './notificationService';
+import { safeFindById, safeFindByIdAndUpdate, safeFindByIdAndDelete, castDocument } from '../utils/mongooseHelper';
 
 export interface IScheduleOptions {
   scheduledAt: Date;
@@ -26,7 +27,7 @@ export class ContentSchedulingService {
     try {
       // Validate that the content exists
       const Model = contentType === 'post' ? Post : Page;
-      const content = await Model.findById(contentId);
+      const content = await safeFindById(Model, contentId);
       
       if (!content) {
         throw new Error(`${contentType} not found`);
@@ -55,7 +56,7 @@ export class ContentSchedulingService {
 
       // Update content status to 'scheduled' if publishing
       if (options.action === 'publish') {
-        await Model.findByIdAndUpdate(contentId, {
+        await safeFindByIdAndUpdate(Model, contentId, {
           status: 'scheduled',
           scheduledAt: options.scheduledAt
         });
@@ -89,7 +90,7 @@ export class ContentSchedulingService {
           await this.executeSchedule(schedule);
           results.executed++;
         } catch (error) {
-          await schedule.markFailed(error.message);
+          await castDocument(schedule).markFailed(error.message);
           results.failed++;
           results.errors.push(`Schedule ${schedule._id}: ${error.message}`);
         }
@@ -107,7 +108,7 @@ export class ContentSchedulingService {
   static async executeSchedule(schedule: any) {
     try {
       const Model = schedule.contentType === 'post' ? Post : Page;
-      const content = await Model.findById(schedule.contentId);
+      const content = await safeFindById(Model, schedule.contentId);
 
       if (!content) {
         throw new Error(`${schedule.contentType} not found`);
@@ -138,9 +139,9 @@ export class ContentSchedulingService {
           break;
 
         case 'delete':
-          await Model.findByIdAndDelete(schedule.contentId);
+          await safeFindByIdAndDelete(Model, schedule.contentId);
           await this.sendNotifications(schedule, 'deleted');
-          await schedule.markExecuted();
+          await castDocument(schedule).markExecuted();
           return;
 
         default:
@@ -148,7 +149,7 @@ export class ContentSchedulingService {
       }
 
       // Update the content
-      await Model.findByIdAndUpdate(schedule.contentId, updateData);
+      await safeFindByIdAndUpdate(Model, schedule.contentId, updateData);
 
       // Send notifications
       await this.sendNotifications(schedule, schedule.action);
@@ -219,12 +220,12 @@ export class ContentSchedulingService {
         throw new Error('Can only cancel pending schedules');
       }
 
-      await schedule.cancel();
+      await castDocument(schedule).cancel();
 
       // Reset content status if it was scheduled for publishing
       if (schedule.action === 'publish') {
         const Model = schedule.contentType === 'post' ? Post : Page;
-        await Model.findByIdAndUpdate(schedule.contentId, {
+        await safeFindByIdAndUpdate(Model, schedule.contentId, {
           status: schedule.metadata.originalStatus || 'draft',
           scheduledAt: null
         });
@@ -290,7 +291,7 @@ export class ContentSchedulingService {
       // Update content scheduledAt if action is publish
       if (schedule.action === 'publish' && updates.scheduledAt) {
         const Model = schedule.contentType === 'post' ? Post : Page;
-        await Model.findByIdAndUpdate(schedule.contentId, {
+        await safeFindByIdAndUpdate(Model, schedule.contentId, {
           scheduledAt: updates.scheduledAt
         });
       }
@@ -384,8 +385,11 @@ export class ContentSchedulingService {
 
         for (const userId of schedule.metadata.notifyUsers) {
           await NotificationService.createNotification({
-            ...notificationData,
-            userId
+            notification: {
+              ...notificationData,
+              recipient: userId,
+              category: 'content_change'
+            }
           });
         }
       }

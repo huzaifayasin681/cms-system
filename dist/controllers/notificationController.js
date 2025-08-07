@@ -373,4 +373,3 @@ const cleanupExpiredNotifications = async (req, res) => {
     }
 };
 exports.cleanupExpiredNotifications = cleanupExpiredNotifications;
-//# sourceMappingURL=notificationController.js.map

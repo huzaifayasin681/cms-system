@@ -30,4 +30,3 @@ const generateRefreshToken = (payload) => {
     });
 };
 exports.generateRefreshToken = generateRefreshToken;
-//# sourceMappingURL=jwt.js.map

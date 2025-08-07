@@ -6,5 +6,5 @@ export declare const getTrafficAnalytics: (req: AuthRequest, res: Response) => P
 export declare const getUserAnalytics: (req: AuthRequest, res: Response) => Promise<void>;
 export declare const getMediaAnalytics: (req: AuthRequest, res: Response) => Promise<void>;
 export declare const getSearchAnalytics: (req: AuthRequest, res: Response) => Promise<void>;
-export declare const exportAnalytics: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const exportAnalytics: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
 //# sourceMappingURL=analyticsController.d.ts.map

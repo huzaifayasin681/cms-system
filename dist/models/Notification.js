@@ -111,4 +111,3 @@ notificationSchema.index({ recipient: 1, priority: 1, createdAt: -1 });
 notificationSchema.index({ emailSent: 1, priority: 1, createdAt: 1 });
 notificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 exports.default = mongoose_1.default.model('Notification', notificationSchema);
-//# sourceMappingURL=Notification.js.map

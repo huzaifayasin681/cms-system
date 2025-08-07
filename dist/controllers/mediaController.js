@@ -330,4 +330,3 @@ const getMediaStats = async (req, res) => {
     }
 };
 exports.getMediaStats = getMediaStats;
-//# sourceMappingURL=mediaController.js.map

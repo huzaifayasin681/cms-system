@@ -145,4 +145,3 @@ const analyticsSummarySchema = new mongoose_1.Schema({
 });
 analyticsSummarySchema.index({ date: 1, type: 1 }, { unique: true });
 exports.AnalyticsSummary = mongoose_1.default.model('AnalyticsSummary', analyticsSummarySchema);
-//# sourceMappingURL=Analytics.js.map

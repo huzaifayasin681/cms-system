@@ -284,4 +284,3 @@ if (require.main === module) {
     });
 }
 exports.default = seedAnalytics;
-//# sourceMappingURL=seedAnalytics.js.map

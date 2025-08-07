@@ -121,7 +121,7 @@ contentScheduleSchema.statics.findDueSchedules = function() {
   return this.find({
     status: 'pending',
     scheduledAt: { $lte: new Date() },
-    retryCount: { $lt: this.maxRetries }
+    retryCount: { $lt: 3 }
   }).populate('contentId').populate('createdBy');
 };
 

@@ -54,7 +54,7 @@ export const getTags = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching tags', error: error.message });
+    res.status(500).json({ message: 'Error fetching tags', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -70,7 +70,7 @@ export const getPopularTags = async (req: Request, res: Response) => {
 
     res.json(tags);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching popular tags', error: error.message });
+    res.status(500).json({ message: 'Error fetching popular tags', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -86,7 +86,7 @@ export const getTag = async (req: Request, res: Response) => {
 
     res.json(tag);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching tag', error: error.message });
+    res.status(500).json({ message: 'Error fetching tag', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -102,7 +102,7 @@ export const getTagBySlug = async (req: Request, res: Response) => {
 
     res.json(tag);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching tag', error: error.message });
+    res.status(500).json({ message: 'Error fetching tag', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -133,7 +133,7 @@ export const createTag = async (req: Request, res: Response) => {
 
     res.status(201).json(tag);
   } catch (error) {
-    res.status(500).json({ message: 'Error creating tag', error: error.message });
+    res.status(500).json({ message: 'Error creating tag', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -166,7 +166,7 @@ export const updateTag = async (req: Request, res: Response) => {
 
     res.json(tag);
   } catch (error) {
-    res.status(500).json({ message: 'Error updating tag', error: error.message });
+    res.status(500).json({ message: 'Error updating tag', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -194,7 +194,7 @@ export const deleteTag = async (req: Request, res: Response) => {
     await Tag.findByIdAndDelete(req.params.id);
     res.json({ message: 'Tag deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting tag', error: error.message });
+    res.status(500).json({ message: 'Error deleting tag', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -235,7 +235,7 @@ export const bulkCreateTags = async (req: Request, res: Response) => {
         await tag.save();
         createdTags.push(tag);
       } catch (error) {
-        errors.push(`Error creating tag "${tagData.name}": ${error.message}`);
+        errors.push(`Error creating tag "${tagData.name}": ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
 
@@ -245,7 +245,7 @@ export const bulkCreateTags = async (req: Request, res: Response) => {
       errors: errors.length > 0 ? errors : undefined
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating tags', error: error.message });
+    res.status(500).json({ message: 'Error creating tags', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -276,7 +276,7 @@ export const bulkDeleteTags = async (req: Request, res: Response) => {
       deletedCount: result.deletedCount
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting tags', error: error.message });
+    res.status(500).json({ message: 'Error deleting tags', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -332,7 +332,7 @@ export const mergeTags = async (req: Request, res: Response) => {
       targetTag: targetTag.name
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error merging tags', error: error.message });
+    res.status(500).json({ message: 'Error merging tags', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -358,7 +358,7 @@ export const getTagStats = async (req: Request, res: Response) => {
       totalContent: postsCount + pagesCount
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching tag stats', error: error.message });
+    res.status(500).json({ message: 'Error fetching tag stats', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -372,13 +372,13 @@ export const suggestTags = async (req: Request, res: Response) => {
     }
 
     const text = `${title || ''} ${content || ''}`.toLowerCase();
-    const words = text.match(/\b\w{3,}\b/g) || [];
+    const words: string[] = text.match(/\b\w{3,}\b/g) || [];
     
     // Get frequency of words
-    const wordFreq = words.reduce((acc: any, word) => {
+    const wordFreq = words.reduce((acc: Record<string, number>, word: string) => {
       acc[word] = (acc[word] || 0) + 1;
       return acc;
-    }, {});
+    }, {} as Record<string, number>);
 
     // Find existing tags that match frequent words
     const frequentWords = Object.keys(wordFreq)
@@ -405,7 +405,7 @@ export const suggestTags = async (req: Request, res: Response) => {
       suggestedNewTags
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error suggesting tags', error: error.message });
+    res.status(500).json({ message: 'Error suggesting tags', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
 
@@ -436,6 +436,6 @@ export const updateTagUsageCounts = async (req: Request, res: Response) => {
       updatedCount
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating tag counts', error: error.message });
+    res.status(500).json({ message: 'Error updating tag counts', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };

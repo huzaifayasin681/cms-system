@@ -151,4 +151,3 @@ if (require.main === module) {
     });
 }
 exports.default = testAnalytics;
-//# sourceMappingURL=testAnalytics.js.map

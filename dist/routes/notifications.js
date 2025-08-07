@@ -107,4 +107,3 @@ router.post('/bulk', auth_1.authenticate, (0, auth_1.authorize)(['admin', 'super
 router.get('/system/stats', auth_1.authenticate, (0, auth_1.authorize)(['admin', 'superadmin']), notificationController_1.getSystemNotificationStats);
 router.delete('/system/cleanup', auth_1.authenticate, (0, auth_1.authorize)(['superadmin']), notificationController_1.cleanupExpiredNotifications);
 exports.default = router;
-//# sourceMappingURL=notifications.js.map

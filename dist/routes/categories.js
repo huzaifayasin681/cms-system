@@ -1,0 +1,20 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const auth_1 = require("../middleware/auth");
+const categoryController_1 = require("../controllers/categoryController");
+const router = express_1.default.Router();
+router.get('/hierarchy', categoryController_1.getCategoryHierarchy);
+router.use(auth_1.authenticate);
+router.get('/', categoryController_1.getCategories);
+router.get('/:id', categoryController_1.getCategory);
+router.get('/:id/stats', categoryController_1.getCategoryStats);
+router.post('/', (0, auth_1.authorize)(['editor', 'admin', 'superadmin']), categoryController_1.createCategory);
+router.put('/:id', (0, auth_1.authorize)(['editor', 'admin', 'superadmin']), categoryController_1.updateCategory);
+router.patch('/:id/move', (0, auth_1.authorize)(['editor', 'admin', 'superadmin']), categoryController_1.moveCategory);
+router.delete('/:id', (0, auth_1.authorize)(['admin', 'superadmin']), categoryController_1.deleteCategory);
+router.post('/bulk-delete', (0, auth_1.authorize)(['admin', 'superadmin']), categoryController_1.bulkDeleteCategories);
+exports.default = router;

@@ -247,4 +247,3 @@ const deleteComment = async (req, res) => {
     }
 };
 exports.deleteComment = deleteComment;
-//# sourceMappingURL=commentController.js.map

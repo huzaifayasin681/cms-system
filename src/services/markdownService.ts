@@ -5,6 +5,7 @@ import Post from '../models/Post';
 import Page from '../models/Page';
 import Category from '../models/Category';
 import Tag from '../models/Tag';
+import { safeFindOne, safeFindByIdAndUpdate, safeFindById, castObjectId } from '../utils/mongooseHelper';
 
 interface IMarkdownFrontMatter {
   title: string;
@@ -301,11 +302,11 @@ export class MarkdownService {
         const { frontMatter, content } = parsed;
 
         // Determine content type
-        let typeToCreate = contentType;
+        let typeToCreate: "post" | "page" = contentType as "post" | "page";
         if (contentType === 'auto') {
-          typeToCreate = frontMatter.template || 
+          typeToCreate = (frontMatter.template || 
                         file.filename.includes('page') || 
-                        frontMatter.isHomePage ? 'page' : 'post';
+                        frontMatter.isHomePage) ? 'page' : 'post';
         }
 
         // Generate slug if not provided
@@ -315,7 +316,7 @@ export class MarkdownService {
 
         // Check for existing content
         const Model = typeToCreate === 'post' ? Post : Page;
-        const existing = await Model.findOne({ slug: frontMatter.slug });
+        const existing = await safeFindOne(Model, { slug: frontMatter.slug });
         
         if (existing && !overwrite) {
           result.errors.push(`Content with slug "${frontMatter.slug}" already exists`);
@@ -379,7 +380,7 @@ export class MarkdownService {
         // Create or update content
         let savedContent;
         if (existing && overwrite) {
-          savedContent = await Model.findByIdAndUpdate(existing._id, contentData, { new: true });
+          savedContent = await safeFindByIdAndUpdate(Model, existing._id, contentData, { new: true });
         } else {
           savedContent = new Model(contentData);
           await savedContent.save();
@@ -427,7 +428,7 @@ export class MarkdownService {
           }
         } else {
           const Model = contentType === 'post' ? Post : Page;
-          content = await Model.findById(contentId).populate('categories tags author');
+          content = await safeFindById(Model, contentId).populate('categories tags author');
           type = contentType;
         }
 
@@ -549,7 +550,7 @@ export class MarkdownService {
       }
 
       if (category) {
-        categoryIds.push(category._id);
+        categoryIds.push(category._id as mongoose.Types.ObjectId);
       }
     }
 
@@ -576,7 +577,7 @@ export class MarkdownService {
       }
 
       if (tag) {
-        tagIds.push(tag._id);
+        tagIds.push(tag._id as mongoose.Types.ObjectId);
       }
     }
 

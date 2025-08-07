@@ -15,4 +15,3 @@ router.post('/reset', rateLimiter_1.generalLimiter, settingsController_1.resetSe
 router.post('/logo', rateLimiter_1.generalLimiter, upload_1.uploadSingle, settingsController_1.uploadLogo);
 router.post('/test-email', rateLimiter_1.generalLimiter, settingsController_1.testEmailConfig);
 exports.default = router;
-//# sourceMappingURL=settings.js.map

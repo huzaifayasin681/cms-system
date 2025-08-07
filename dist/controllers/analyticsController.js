@@ -639,4 +639,3 @@ function convertToCSV(data) {
     ];
     return [headers, ...rows].map(row => row.join(',')).join('\n');
 }
-//# sourceMappingURL=analyticsController.js.map

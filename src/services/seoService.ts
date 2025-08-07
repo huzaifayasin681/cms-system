@@ -3,6 +3,7 @@ import Post from '../models/Post';
 import Page from '../models/Page';
 import Category from '../models/Category';
 import Tag from '../models/Tag';
+import { safeFindById } from '../utils/mongooseHelper';
 
 export interface ISEOAnalysis {
   score: number;
@@ -280,7 +281,7 @@ Sitemap: {{SITE_URL}}/sitemap.xml`;
   static async getSEORecommendations(contentId: mongoose.Types.ObjectId, contentType: 'post' | 'page') {
     try {
       const Model = contentType === 'post' ? Post : Page;
-      const content = await Model.findById(contentId).populate('categories tags');
+      const content = await safeFindById(Model, contentId).populate('categories tags');
 
       if (!content) {
         throw new Error('Content not found');
@@ -518,7 +519,7 @@ Sitemap: {{SITE_URL}}/sitemap.xml`;
     }
 
     // Images in content
-    const images = content.match(/<img[^>]*>/g) || [];
+    const images: string[] = content.match(/<img[^>]*>/g) || [];
     let imagesWithoutAlt = 0;
 
     images.forEach(img => {
@@ -617,8 +618,8 @@ Sitemap: {{SITE_URL}}/sitemap.xml`;
 
   private static calculateReadabilityScore(text: string): number {
     const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    const words = text.match(/\b\w+\b/g) || [];
-    const syllables = words.reduce((count, word) => count + this.countSyllables(word), 0);
+    const words: string[] = text.match(/\b\w+\b/g) || [];
+    const syllables = words.reduce((count: number, word: string) => count + SEOService.countSyllables(word), 0);
 
     if (sentences.length === 0 || words.length === 0) return 0;
 

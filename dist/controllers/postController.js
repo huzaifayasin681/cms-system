@@ -351,4 +351,3 @@ const savePostDraft = async (req, res) => {
     }
 };
 exports.savePostDraft = savePostDraft;
-//# sourceMappingURL=postController.js.map

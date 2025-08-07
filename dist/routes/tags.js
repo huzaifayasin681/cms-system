@@ -1,0 +1,24 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const auth_1 = require("../middleware/auth");
+const tagController_1 = require("../controllers/tagController");
+const router = express_1.default.Router();
+router.get('/popular', tagController_1.getPopularTags);
+router.get('/slug/:slug', tagController_1.getTagBySlug);
+router.use(auth_1.authenticate);
+router.get('/', tagController_1.getTags);
+router.get('/:id', tagController_1.getTag);
+router.get('/:id/stats', tagController_1.getTagStats);
+router.post('/suggest', (0, auth_1.authorize)(['editor', 'admin', 'superadmin']), tagController_1.suggestTags);
+router.post('/', (0, auth_1.authorize)(['editor', 'admin', 'superadmin']), tagController_1.createTag);
+router.put('/:id', (0, auth_1.authorize)(['editor', 'admin', 'superadmin']), tagController_1.updateTag);
+router.post('/bulk-create', (0, auth_1.authorize)(['editor', 'admin', 'superadmin']), tagController_1.bulkCreateTags);
+router.delete('/:id', (0, auth_1.authorize)(['admin', 'superadmin']), tagController_1.deleteTag);
+router.post('/bulk-delete', (0, auth_1.authorize)(['admin', 'superadmin']), tagController_1.bulkDeleteTags);
+router.post('/merge', (0, auth_1.authorize)(['admin', 'superadmin']), tagController_1.mergeTags);
+router.post('/update-counts', (0, auth_1.authorize)(['superadmin']), tagController_1.updateTagUsageCounts);
+exports.default = router;

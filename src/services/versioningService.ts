@@ -4,6 +4,7 @@ import Post from '../models/Post';
 import Page from '../models/Page';
 import { IPost } from '../models/Post';
 import { IPage } from '../models/Page';
+import { safeFindById, safeFindByIdAndUpdate } from '../utils/mongooseHelper';
 
 export interface IVersionDiff {
   field: string;
@@ -26,7 +27,7 @@ export class ContentVersioningService {
     try {
       // Get the current content
       const Model = contentType === 'post' ? Post : Page;
-      const content = await Model.findById(contentId);
+      const content = await safeFindById(Model, contentId);
       
       if (!content) {
         throw new Error(`${contentType} not found`);
@@ -198,7 +199,8 @@ export class ContentVersioningService {
         status: targetVersionDoc.status
       };
 
-      const updatedContent = await Model.findByIdAndUpdate(
+      const updatedContent = await safeFindByIdAndUpdate(
+        Model,
         contentId,
         updateData,
         { new: true, runValidators: true }

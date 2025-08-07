@@ -348,4 +348,3 @@ const getHomePage = async (req, res) => {
     }
 };
 exports.getHomePage = getHomePage;
-//# sourceMappingURL=pageController.js.map

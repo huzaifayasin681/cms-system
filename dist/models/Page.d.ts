@@ -6,11 +6,14 @@ export interface IPage extends Document {
     excerpt?: string;
     featuredImage?: string;
     author: Types.ObjectId;
-    status: 'draft' | 'published' | 'archived';
+    status: 'draft' | 'published' | 'archived' | 'scheduled' | 'pending_review';
     template: 'default' | 'full-width' | 'minimal' | 'landing' | 'contact' | 'about' | 'visual-builder';
     icon?: string;
     seoTitle?: string;
     seoDescription?: string;
+    seoKeywords?: string[];
+    categories?: Types.ObjectId[];
+    tags?: Types.ObjectId[];
     isHomePage: boolean;
     parentPage?: Types.ObjectId;
     menuOrder: number;
@@ -19,6 +22,22 @@ export interface IPage extends Document {
     customJs?: string;
     views: number;
     publishedAt?: Date;
+    scheduledAt?: Date;
+    version: number;
+    customFields?: Record<string, any>;
+    workflowStatus?: {
+        currentWorkflow?: Types.ObjectId;
+        currentStep?: string;
+        submittedAt?: Date;
+        submittedBy?: Types.ObjectId;
+    };
+    collaborators: {
+        userId: Types.ObjectId;
+        permission: 'read' | 'edit' | 'admin';
+        addedAt: Date;
+        addedBy: Types.ObjectId;
+    }[];
+    searchableContent: string;
     ctaText?: string;
     phone?: string;
     email?: string;

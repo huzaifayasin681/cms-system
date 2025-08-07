@@ -5,7 +5,8 @@ import Category from '../models/Category';
 import Tag from '../models/Tag';
 import ContentVersioningService from './versioningService';
 import ContentSchedulingService from './schedulingService';
-import { NotificationService } from './notificationService';
+import NotificationService from './notificationService';
+import { mongooseQuery, safeFindByIdAndUpdate, safeFindById } from '../utils/mongooseHelper';
 
 export interface IBulkOperation {
   action: string;
@@ -306,7 +307,7 @@ export class BulkActionsService {
           continue;
         }
 
-        await Model.findByIdAndUpdate(contentId, {
+        await (Model.findByIdAndUpdate as any)(contentId, {
           status: 'published',
           publishedAt: content.publishedAt || new Date()
         });
@@ -323,8 +324,8 @@ export class BulkActionsService {
         result.results.push({ id: contentId, success: true });
         result.success++;
       } catch (error) {
-        result.results.push({ id: contentId, success: false, error: error.message });
-        result.errors.push(`Error publishing ${contentId}: ${error.message}`);
+        result.results.push({ id: contentId, success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+        result.errors.push(`Error publishing ${contentId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         result.failed++;
       }
     }
@@ -341,7 +342,7 @@ export class BulkActionsService {
       try {
         const { Model } = await this.getContentModel(contentId, operation.contentType);
         
-        await Model.findByIdAndUpdate(contentId, {
+        await (Model.findByIdAndUpdate as any)(contentId, {
           status: 'draft',
           publishedAt: null
         });
@@ -358,8 +359,8 @@ export class BulkActionsService {
         result.results.push({ id: contentId, success: true });
         result.success++;
       } catch (error) {
-        result.results.push({ id: contentId, success: false, error: error.message });
-        result.errors.push(`Error unpublishing ${contentId}: ${error.message}`);
+        result.results.push({ id: contentId, success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+        result.errors.push(`Error unpublishing ${contentId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         result.failed++;
       }
     }
@@ -376,7 +377,7 @@ export class BulkActionsService {
       try {
         const { Model } = await this.getContentModel(contentId, operation.contentType);
         
-        await Model.findByIdAndUpdate(contentId, { status: 'archived' });
+        await (Model.findByIdAndUpdate as any)(contentId, { status: 'archived' });
 
         // Create version
         await ContentVersioningService.createVersion(
@@ -390,8 +391,8 @@ export class BulkActionsService {
         result.results.push({ id: contentId, success: true });
         result.success++;
       } catch (error) {
-        result.results.push({ id: contentId, success: false, error: error.message });
-        result.errors.push(`Error archiving ${contentId}: ${error.message}`);
+        result.results.push({ id: contentId, success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+        result.errors.push(`Error archiving ${contentId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         result.failed++;
       }
     }
@@ -414,12 +415,12 @@ export class BulkActionsService {
           continue;
         }
 
-        await Model.findByIdAndDelete(contentId);
+        await (Model.findByIdAndDelete as any)(contentId);
         result.results.push({ id: contentId, success: true });
         result.success++;
       } catch (error) {
-        result.results.push({ id: contentId, success: false, error: error.message });
-        result.errors.push(`Error deleting ${contentId}: ${error.message}`);
+        result.results.push({ id: contentId, success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+        result.errors.push(`Error deleting ${contentId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         result.failed++;
       }
     }
@@ -452,7 +453,7 @@ export class BulkActionsService {
             break;
         }
 
-        await Model.findByIdAndUpdate(contentId, updateQuery);
+        await safeFindByIdAndUpdate(Model, contentId, updateQuery);
 
         // Create version
         await ContentVersioningService.createVersion(
@@ -466,8 +467,8 @@ export class BulkActionsService {
         result.results.push({ id: contentId, success: true });
         result.success++;
       } catch (error) {
-        result.results.push({ id: contentId, success: false, error: error.message });
-        result.errors.push(`Error updating categories for ${contentId}: ${error.message}`);
+        result.results.push({ id: contentId, success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+        result.errors.push(`Error updating categories for ${contentId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         result.failed++;
       }
     }
@@ -500,7 +501,7 @@ export class BulkActionsService {
             break;
         }
 
-        await Model.findByIdAndUpdate(contentId, updateQuery);
+        await safeFindByIdAndUpdate(Model, contentId, updateQuery);
 
         // Create version
         await ContentVersioningService.createVersion(
@@ -514,8 +515,8 @@ export class BulkActionsService {
         result.results.push({ id: contentId, success: true });
         result.success++;
       } catch (error) {
-        result.results.push({ id: contentId, success: false, error: error.message });
-        result.errors.push(`Error updating tags for ${contentId}: ${error.message}`);
+        result.results.push({ id: contentId, success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+        result.errors.push(`Error updating tags for ${contentId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         result.failed++;
       }
     }
@@ -559,8 +560,8 @@ export class BulkActionsService {
         result.results.push({ id: contentId, success: true });
         result.success++;
       } catch (error) {
-        result.results.push({ id: contentId, success: false, error: error.message });
-        result.errors.push(`Error scheduling ${contentId}: ${error.message}`);
+        result.results.push({ id: contentId, success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+        result.errors.push(`Error scheduling ${contentId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         result.failed++;
       }
     }
@@ -572,14 +573,14 @@ export class BulkActionsService {
   private static async getContentModel(contentId: mongoose.Types.ObjectId, contentType: string) {
     if (contentType === 'mixed') {
       // Try Post first, then Page
-      let content = await Post.findById(contentId);
+      let content = await (Post.findById as any)(contentId);
       if (content) return { Model: Post, content };
       
-      content = await Page.findById(contentId);
+      content = await (Page.findById as any)(contentId);
       return { Model: Page, content };
     } else {
       const Model = contentType === 'post' ? Post : Page;
-      const content = await Model.findById(contentId);
+      const content = await safeFindById(Model, contentId);
       return { Model, content };
     }
   }

@@ -115,4 +115,3 @@ const requireEmailVerification = (req, res, next) => {
     next();
 };
 exports.requireEmailVerification = requireEmailVerification;
-//# sourceMappingURL=auth.js.map

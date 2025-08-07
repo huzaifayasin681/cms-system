@@ -103,4 +103,3 @@ mediaSchema.index({ folder: 1 });
 mediaSchema.index({ tags: 1 });
 mediaSchema.index({ createdAt: -1 });
 exports.default = mongoose_1.default.model('Media', mediaSchema);
-//# sourceMappingURL=Media.js.map

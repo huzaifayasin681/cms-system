@@ -13,4 +13,3 @@ router.get('/media', rateLimiter_1.generalLimiter, auth_1.authenticate, (0, auth
 router.get('/search', rateLimiter_1.generalLimiter, auth_1.authenticate, (0, auth_1.authorize)(['superadmin', 'admin', 'editor']), analyticsController_1.getSearchAnalytics);
 router.get('/export', rateLimiter_1.generalLimiter, auth_1.authenticate, (0, auth_1.authorize)(['superadmin', 'admin']), analyticsController_1.exportAnalytics);
 exports.default = router;
-//# sourceMappingURL=analytics.js.map

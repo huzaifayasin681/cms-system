@@ -15,4 +15,3 @@ router.put('/:id', mediaController_1.updateMedia);
 router.delete('/:id', mediaController_1.deleteMedia);
 router.post('/bulk-delete', (0, auth_1.authorize)(['superadmin', 'admin']), mediaController_1.bulkDeleteMedia);
 exports.default = router;
-//# sourceMappingURL=media.js.map

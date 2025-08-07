@@ -31,4 +31,3 @@ router.post('/users/:userId/activate', auth_1.authenticate, authController_1.act
 router.post('/users/:userId/deactivate', auth_1.authenticate, authController_1.deactivateUser);
 router.post('/users/:userId/reset-password', auth_1.authenticate, authController_1.resetUserPassword);
 exports.default = router;
-//# sourceMappingURL=auth.js.map

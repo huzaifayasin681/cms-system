@@ -219,4 +219,3 @@ class AnalyticsBatch {
     }
 }
 exports.AnalyticsBatch = AnalyticsBatch;
-//# sourceMappingURL=analytics.js.map
